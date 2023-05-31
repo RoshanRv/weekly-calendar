@@ -3,50 +3,30 @@ import moment from "moment"
 import type { Moment } from "moment"
 import { BiChevronLeft, BiChevronRight } from "react-icons/bi"
 import { CgAddR } from "react-icons/cg"
+import Modal from "../components/Modal"
+import { Period } from "../App"
 
-const periods = [
-    {
-        name: "Period 1",
-        startTime: "10:00",
-        endTime: "12:00",
-        repeatOn: [0, 1, 5, 3, 2],
-        from: "2023/05/29",
-        to: "2023/07/01",
-        color: "red",
-    },
-    {
-        name: "Period 2",
-        startTime: "16:00",
-        endTime: "17:00",
-        repeatOn: [3, 2],
-        from: "2023/05/29",
-        to: "2023/07/01",
-        color: "yellow",
-    },
-    {
-        name: "Period 3",
-        startTime: "13:00",
-        endTime: "12:00",
-        repeatOn: [1, 2],
-        from: "2023/05/29",
-        to: "2023/07/01",
-        color: "blue",
-    },
-]
+interface Props {
+    periods: Period[]
+    setPeriods: React.Dispatch<React.SetStateAction<Period[]>>
+}
 
-const Calendar = () => {
+const Calendar = ({ periods, setPeriods }: Props) => {
     const [startOfWeek, setStartOfWeek] = useState<Moment>()
     const [endOfWeek, setEndOfWeek] = useState<Moment>()
     const [today, setToday] = useState<Moment>()
     const [oneWeek, setOneWeek] = useState<Moment[]>()
     const timeSlots = Array.from({ length: 24 }, (_, i) => i + 1)
+    const [weekIndex, setWeekIndex] = useState(0)
+
+    const [showModal, setShowModal] = useState(false)
 
     const rows = Array.from({ length: timeSlots.length }, (_, i) => i)
     const columns = Array.from({ length: 8 }, (_, i) => i)
 
     useEffect(() => {
-        const start = moment().startOf("isoWeek")
-        const end = moment().endOf("isoWeek")
+        const start = moment().clone().add(weekIndex, "week").startOf("isoWeek")
+        const end = moment().clone().add(weekIndex, "week").endOf("isoWeek")
         const days = []
         let day = start
 
@@ -59,7 +39,7 @@ const Calendar = () => {
         setStartOfWeek(start)
         setEndOfWeek(end)
         setOneWeek(days)
-    }, [])
+    }, [weekIndex])
 
     return (
         <div className="px-10 py-8 mt-[5.5rem] font-disp">
@@ -74,26 +54,40 @@ const Calendar = () => {
                         )} ${startOfWeek?.format("DD")} - ${endOfWeek?.format(
                             "MMMM"
                         )} ${endOfWeek?.format("DD")}`}</h1>
-                        <div className="flex items-center gap-x-1">
-                            <BiChevronLeft className="text-2xl" />
-                            <h1 className="text-lg">Today</h1>
-                            <BiChevronRight className="text-2xl" />
+                        <div className="flex items-center gap-x-1 ">
+                            <BiChevronLeft
+                                onClick={() => setWeekIndex((e) => e - 1)}
+                                className="text-2xl cursor-pointer hover:text-pri-dark"
+                            />
+                            <h1
+                                onClick={() => setWeekIndex(0)}
+                                className="text-lg cursor-pointer hover:text-pri-dark"
+                            >
+                                Today
+                            </h1>
+                            <BiChevronRight
+                                className="text-2xl cursor-pointer hover:text-pri-dark"
+                                onClick={() => setWeekIndex((e) => e + 1)}
+                            />
                         </div>
                     </div>
                     {/* Add Btn */}
-                    <button className=" bg-pri-dark px-8 py-3 items-center text-white  rounded-full flex gap-x-3 font-light hover:bg-pri-light transition-all hover:text-pri-dark duration-500 ">
+                    <button
+                        onClick={() => setShowModal(true)}
+                        className=" bg-pri-dark px-8 py-3 items-center text-white  rounded-full flex gap-x-3 font-light hover:bg-pri-light transition-all hover:text-pri-dark duration-500 "
+                    >
                         <CgAddR className="text-lg" />
                         <h1>Add Period</h1>
                     </button>
                 </div>
-                <div className="grid  divide-x divide-x-reverse  divide-y divide-y-reverse  bg-white grid-cols-[repeat(8,auto)] mt-10 border-b p-4 border-gray-300 divide-solid divie-x-2  divide-gray-300 ">
+                <div className="grid  divide-x divide-x-reverse divide-y divide-y-reverse  bg-white grid-cols-[repeat(8,auto)] g mt-10 border-b p-4 border-gray-300 divide-solid divie-x-2  divide-gray-300 ">
                     {/* weekly calendar header */}
                     {/* Placeholder Box */}
-                    <div className=" w-20 sticky top-[17rem]  pb-6 pt-2 bg-white border-b border-r border-gray-300"></div>
+                    <div className=" sticky top-[17rem] pb-6 pt-2 bg-white border-b border-r border-gray-300"></div>
                     {oneWeek?.map((day, i) => (
                         <div
                             key={i}
-                            className="flex flex-col gap-y-2 justify-center items-center w-44 sticky top-[17rem] pb-6 pt-2 bg-white"
+                            className="flex flex-col gap-y-2 justify-center items-center  sticky top-[17rem] pb-6 pt-2 bg-white"
                         >
                             {/* Day */}
                             <h1
@@ -120,15 +114,14 @@ const Calendar = () => {
                     {rows.map((row, rowIndex) =>
                         columns.map((col, colIndex) => {
                             // Time Slots
-                            console.log(col)
 
                             if (col === 0) {
                                 return (
                                     <div
                                         key={rowIndex * colIndex}
-                                        className="p-4 text-center"
+                                        className="p-4 text-center "
                                     >
-                                        <h1 className="text-gray-500 text-xs border-0 bg-white mb-2">
+                                        <h1 className="text-gray-500 text-xs border-0 mb-2">
                                             {timeSlots[row].toString()
                                                 .length === 1
                                                 ? `0${timeSlots[row]}:00`
@@ -174,11 +167,11 @@ const Calendar = () => {
                             return flag >= 1 ? (
                                 <div
                                     className={`py-1 px-2 cursor-pointer rounded-lg  w-full shadow-sm ${
-                                        res.color === "red"
+                                        res.color === "bg-pink-100"
                                             ? "bg-pink-100 text-pink-400"
-                                            : res.color === "blue"
+                                            : res.color === "bg-indigo-100"
                                             ? "text-indigo-400 bg-indigo-100"
-                                            : res.color === "yellow"
+                                            : res.color === "bg-yellow-100"
                                             ? "bg-yellow-100 text-yellow-500"
                                             : "text-emerald-400 bg-emerald-100"
                                     }  `}
@@ -197,12 +190,17 @@ const Calendar = () => {
                                     }`}</p>
                                 </div>
                             ) : (
-                                <h1></h1>
+                                <h1 className="  "></h1>
                             )
                         })
                     )}
                 </div>
             </section>
+
+            {/* Modal */}
+            {showModal && (
+                <Modal setPeriods={setPeriods} setShowModal={setShowModal} />
+            )}
         </div>
     )
 }
