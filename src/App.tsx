@@ -44,6 +44,15 @@ function App() {
             to: "2023/07/01",
             color: "bg-indigo-100",
         },
+        {
+            name: "Period 5",
+            startTime: "02:00",
+            endTime: "03:00",
+            repeatOn: [1, 3, 5],
+            from: "2023/04/29",
+            to: "2023/08/01",
+            color: "bg-emerald-100",
+        },
     ])
 
     console.log(periods)
